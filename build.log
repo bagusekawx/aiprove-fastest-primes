@@ -1,0 +1,99 @@
+=== build log: aiprove fastest-primes ===
+date: 2026-11-13T15:55:34Z / 2026-11-13T22:55:34WIB
+host: Linux htch-runtime 7.0.0-44-generic #1 SMP PREEMPT_DYNAMIC Fri Nov  6 01:23:31 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+gcc: gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+
+--- generate tables ---
+reference sieve OK: {10: 4, 100: 25, 1000: 168, 100000: 9592, 1000000: 78498, 5000000: 348513}
+Traceback (most recent call last):
+  File "/home/hatch/workspace/tools/aiprove/fastest-primes/gen_tables.py", line 69, in <module>
+    main()
+  File "/home/hatch/workspace/tools/aiprove/fastest-primes/gen_tables.py", line 50, in main
+    assert small[-1] == 2233, small[-3:]
+           ^^^^^^^^^^^^^^^^^
+AssertionError: [2207, 2213, 2221]
+
+--- compile ---
+primes.c:20:10: fatal error: tables.h: No such file or directory
+   20 | #include "tables.h"
+      |          ^~~~~~~~~~
+compilation terminated.
+baseline built OK
+ls: cannot access 'primes': No such file or directory
+-rwxrwx--- 1 root nogroup 16248 Nov 13 15:55 baseline_sieve
+
+--- regenerate tables (fixed assertion: 2221 is largest prime <= 2236) ---
+reference sieve OK: {10: 4, 100: 25, 1000: 168, 100000: 9592, 1000000: 78498, 5000000: 348513}
+small primes <= 2236: 331
+wrote tables.h
+
+--- compile ---
+primes built OK
+-rwxrwx--- 1 root nogroup 20352 Nov 13 15:55 primes
+-rw-rw---- 1 root nogroup  6239 Nov 13 15:55 tables.h
+
+--- correctness: known values ---
+1 -> 0
+2 -> 1
+3 -> 2
+10 -> 4
+100 -> 25
+1000 -> 168
+100000 -> 9592
+1000000 -> 78498
+5000000 -> 348513
+expected: 1->0 2->1 3->2 10->4 100->25 1000->168 100000->9592 1000000->78498 5000000->348513
+
+--- rebuild after comment fix + exhaustive verification ---
+rebuilt OK
+reference OK
+testing 10491 values...
+ALL 10491 TESTS PASSED
+
+--- benchmark: wall-clock per run (50 runs each, includes process startup) ---
+./primes N=5000000: min 0.780 ms | median 0.947 ms | mean 0.988 ms | out=348513
+./baseline_sieve N=5000000: min 7.425 ms | median 8.078 ms | mean 8.140 ms | out=348513
+./primes N=1000000: min 0.736 ms | median 0.946 ms | mean 0.968 ms | out=78498
+./baseline_sieve N=1000000: min 1.923 ms | median 2.092 ms | mean 2.116 ms | out=78498
+./primes N=100: min 0.725 ms | median 0.808 ms | mean 0.861 ms | out=25
+./baseline_sieve N=100: min 0.712 ms | median 0.792 ms | mean 0.813 ms | out=25
+
+--- 'time' spot check, N=5000000 ---
+348513
+
+real	0m0.001s
+user	0m0.002s
+sys	0m0.000s
+348513
+
+real	0m0.008s
+user	0m0.007s
+sys	0m0.001s
+
+--- run.sh + make smoke tests ---
+348513
+25
+rm -f primes baseline_sieve
+cc -O3 -o primes primes.c
+78498
+--- make check (re-run of verify.py) ---
+testing 10491 values...
+ALL 10491 TESTS PASSED
+
+--- files ---
+total 84
+drwxrws--- 1 root nogroup   240 Nov 13 15:56 .
+drwxrws--- 1 root nogroup   404 Nov 13 15:55 ..
+-rw-rw---- 1 root nogroup    52 Nov 13 15:56 .gitignore
+-rw-rw---- 1 root nogroup  1067 Nov 13 15:56 LICENSE
+-rw-rw---- 1 root nogroup   402 Nov 13 15:56 Makefile
+-rw-rw---- 1 root nogroup  2956 Nov 13 15:56 README.md
+-rw-rw---- 1 root nogroup   821 Nov 13 15:55 baseline_sieve.c
+-rw-rw---- 1 root nogroup 13618 Nov 13 15:54 bounty.json
+-rw-rw---- 1 root nogroup  2643 Nov 13 15:56 build.log
+-rw-rw---- 1 root nogroup  2468 Nov 13 15:55 gen_tables.py
+-rwxrwx--- 1 root nogroup 20352 Nov 13 15:56 primes
+-rw-rw---- 1 root nogroup  2140 Nov 13 15:55 primes.c
+-rwxrwx--- 1 root nogroup   442 Nov 13 15:56 run.sh
+-rw-rw---- 1 root nogroup  6239 Nov 13 15:55 tables.h
+-rw-rw---- 1 root nogroup  2210 Nov 13 15:55 verify.py
